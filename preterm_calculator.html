@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор риска преждевременных родов</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #f0f4f8;
+    --surface: #ffffff;
+    --surface2: #e8f0f7;
+    --border: #c8d8e8;
+    --border-dark: #a0b8cc;
+    --text: #1a2d42;
+    --text-muted: #5a7a95;
+    --text-dim: #8aa0b5;
+    --accent: #1565c0;
+    --accent-mid: #1976d2;
+    --accent-light: #e3f0fb;
+    --accent-glow: rgba(21,101,192,0.12);
+    --low: #0277bd;
+    --low-bg: #e1f0fa;
+    --low-border: #90caf9;
+    --mid: #e65100;
+    --mid-bg: #fff3e0;
+    --mid-border: #ffcc80;
+    --high: #b71c1c;
+    --high-bg: #ffebee;
+    --high-border: #ef9a9a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #1565c0 0%, #1976d2 60%, #0288d1 100%);
+    padding: 24px 20px 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 20px;
+    background: var(--bg);
+    border-radius: 20px 20px 0 0;
+  }
+
+  .institute-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    padding: 5px 12px;
+    margin-bottom: 14px;
+  }
+
+  .institute-badge .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #fff;
+    animation: pulse 2.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .institute-badge span {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    color: rgba(255,255,255,0.9);
+    text-transform: uppercase;
+  }
+
+  .header h1 {
+    font-size: clamp(16px, 4.5vw, 22px);
+    font-weight: 700;
+    line-height: 1.3;
+    color: #fff;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HINT */
+  .hint-bar {
+    background: #fff;
+    border-bottom: 2px solid var(--border);
+    padding: 11px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .hint-icon {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    border: 1.5px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .hint-bar p {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  /* MAIN */
+  .main {
+    padding: 20px;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1.5px;
+    background: linear-gradient(90deg, var(--accent-light), transparent);
+  }
+
+  /* FACTORS */
+  .factors-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .factor-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  .factor-item:hover {
+    border-color: var(--accent-mid);
+    background: var(--accent-light);
+    box-shadow: 0 2px 8px rgba(21,101,192,0.12);
+    transform: translateY(-1px);
+  }
+
+  .factor-item.active {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    box-shadow: 0 2px 12px rgba(21,101,192,0.18);
+  }
+
+  .checkbox {
+    width: 22px; height: 22px;
+    border: 2px solid var(--border-dark);
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease;
+    background: var(--bg);
+  }
+
+  .factor-item.active .checkbox {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 8px rgba(21,101,192,0.35);
+  }
+
+  .checkmark {
+    display: none;
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .factor-item.active .checkmark { display: block; }
+
+  .factor-content { flex: 1; min-width: 0; }
+
+  .factor-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .factor-detail {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 3px;
+  }
+
+  .factor-or {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .factor-item.active .factor-or {
+    background: rgba(21,101,192,0.12);
+    border-color: rgba(21,101,192,0.3);
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* RESULT */
+  .result-card {
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .result-card.low  { border-color: var(--low-border);  box-shadow: 0 2px 16px rgba(2,119,189,0.12); }
+  .result-card.mid  { border-color: var(--mid-border);  box-shadow: 0 2px 16px rgba(230,81,0,0.12); }
+  .result-card.high { border-color: var(--high-border); box-shadow: 0 2px 16px rgba(183,28,28,0.12); }
+
+  .result-top {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .result-circle {
+    width: 76px; height: 76px;
+    border-radius: 50%;
+    border: 3px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+    background: var(--surface2);
+  }
+
+  .result-card.low  .result-circle { border-color: var(--low);  background: var(--low-bg);  box-shadow: 0 0 16px rgba(2,119,189,0.2); }
+  .result-card.mid  .result-circle { border-color: var(--mid);  background: var(--mid-bg);  box-shadow: 0 0 16px rgba(230,81,0,0.2); }
+  .result-card.high .result-circle { border-color: var(--high); background: var(--high-bg); box-shadow: 0 0 16px rgba(183,28,28,0.2); }
+
+  .result-pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dim);
+    transition: color 0.3s ease;
+  }
+
+  .result-card.low  .result-pct { color: var(--low); }
+  .result-card.mid  .result-pct { color: var(--mid); }
+  .result-card.high .result-pct { color: var(--high); }
+
+  .result-info { flex: 1; }
+
+  .result-risk-label {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+    transition: color 0.3s ease;
+  }
+
+  .result-card.low  .result-risk-label { color: var(--low); }
+  .result-card.mid  .result-risk-label { color: var(--mid); }
+  .result-card.high .result-risk-label { color: var(--high); }
+
+  .result-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  .progress-wrap { padding: 0 20px 10px; }
+
+  .progress-track {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--surface2);
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1), background 0.3s ease;
+    background: var(--accent);
+  }
+
+  .result-card.low  .progress-fill { background: var(--low); }
+  .result-card.mid  .progress-fill { background: var(--mid); }
+  .result-card.high .progress-fill { background: var(--high); }
+
+  .progress-marks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: 9px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+  }
+
+  .recommendation {
+    margin: 0 20px 20px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.6;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+  }
+
+  .result-card.low  .recommendation { background: var(--low-bg);  border-color: var(--low-border);  color: #01579b; }
+  .result-card.mid  .recommendation { background: var(--mid-bg);  border-color: var(--mid-border);  color: #bf360c; }
+  .result-card.high .recommendation { background: var(--high-bg); border-color: var(--high-border); color: #7f0000; }
+
+  /* FORMULA */
+  .formula-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+
+  .formula-body {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 2;
+    color: var(--text-dim);
+    word-break: break-word;
+  }
+
+  .formula-body .active-term {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .formula-result {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* RESET */
+  .reset-btn {
+    width: 100%;
+    padding: 13px;
+    background: transparent;
+    border: 1.5px solid var(--border-dark);
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 24px;
+  }
+
+  .reset-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  footer {
+    border-top: 1.5px solid var(--border);
+    padding: 16px 20px 32px;
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  footer p + p { margin-top: 6px; }
+
+  @media (max-width: 480px) {
+    .factor-item { padding: 12px; gap: 10px; }
+    .factor-name { font-size: 13px; }
+    .result-circle { width: 64px; height: 64px; }
+    .result-pct { font-size: 17px; }
+    .result-risk-label { font-size: 15px; }
+    .formula-body { font-size: 10px; }
+    .institute-badge span { font-size: 9px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="institute-badge">
+    <div class="dot"></div>
+    <span>Таджикский НИИ акушерства, гинекологии и перинатологии</span>
+  </div>
+  <h1>Калькулятор риска преждевременных родов</h1>
+</div>
+
+<div class="hint-bar">
+  <div class="hint-icon">i</div>
+  <p>Отметьте факторы риска, присутствующие у пациентки — вероятность рассчитается автоматически</p>
+</div>
+
+<div class="main">
+
+  <div class="section-label">Факторы риска</div>
+
+  <div class="factors-grid">
+
+    <div class="factor-item" data-key="gyn" onclick="toggle(this)">
+      <div class="checkbox"><span class="checkmark">✓</span></div>
+      <div class="factor-content">
+        <div class="factor-name">Аборты в анамнезе</div>
+        <div class="factor-detail">Один или более искусственных прерываний беременности</div>
+      </div>
+      <div class="factor-or">OR 4,65</div>
+    </div>
+
+    <div class="factor-item" data-key="prev" onclick="toggle(this)">
+      <div class="checkbox"><span class="checkmark">✓</span></div>
+      <div class="factor-content">
+        <div class="factor-name">Преждевременные роды в анамнезе</div>
+        <div class="factor-detail">Роды до 37 недель в предыдущих беременностях</div>
+      </div>
+      <div class="factor-or">OR 3,73</div>
+    </div>
+
+    <div class="factor-item" data-key="phys" onclick="toggle(this)">
+      <div class="checkbox"><span class="checkmark">✓</span></div>
+      <div class="factor-content">
+        <div class="factor-name">Физический труд во время беременности</div>
+        <div class="factor-detail">Тяжёлый физический труд дома или на работе</div>
+      </div>
+      <div class="factor-or">OR 3,22</div>
+    </div>
+
+    <div class="factor-item" data-key="anemia" onclick="toggle(this)">
+      <div class="checkbox"><span class="checkmark">✓</span></div>
+      <div class="factor-content">
+        <div class="factor-name">ЖДА средней степени тяжести</div>
+        <div class="factor-detail">Гемоглобин 70–99 г/л по данным общего анализа крови</div>
+      </div>
+      <div class="factor-or">OR 2,90</div>
+    </div>
+
+    <div class="factor-item" data-key="bact" onclick="toggle(this)">
+      <div class="checkbox"><span class="checkmark">✓</span></div>
+      <div class="factor-content">
+        <div class="factor-name">Бактериурия</div>
+        <div class="factor-detail">Выявленная при скрининге мочи во время беременности</div>
+      </div>
+      <div class="factor-or">OR 2,90*</div>
+    </div>
+
+    <div class="factor-item" data-key="obes" onclick="toggle(this)">
+      <div class="checkbox"><span class="checkmark">✓</span></div>
+      <div class="factor-content">
+        <div class="factor-name">Ожирение</div>
+        <div class="factor-detail">ИМТ ≥ 30 кг/м² в начале беременности</div>
+      </div>
+      <div class="factor-or">OR 2,65</div>
+    </div>
+
+  </div>
+
+  <div class="section-label">Результат</div>
+
+  <div class="result-card" id="resultCard">
+    <div class="result-top">
+      <div class="result-circle">
+        <div class="result-pct" id="resultPct">—</div>
+      </div>
+      <div class="result-info">
+        <div class="result-risk-label" id="riskLabel">Ожидание данных</div>
+        <div class="result-sub" id="riskSub">Выберите факторы риска выше</div>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-marks">
+        <span>0%</span>
+        <span>40% — умеренный</span>
+        <span>61,5% — высокий</span>
+        <span>100%</span>
+      </div>
+    </div>
+    <div class="recommendation" id="recommendation">
+      Заполните форму для получения результата.
+    </div>
+  </div>
+
+  <div class="section-label">Расчётная формула</div>
+
+  <div class="formula-card">
+    <div class="formula-body" id="formulaBody">
+      z = −1,069<br>
+      + <span id="t_phys">1,168 × ФизТруд (0)</span><br>
+      + <span id="t_prev">1,316 × ПрРодыАнамнез (0)</span><br>
+      + <span id="t_gyn">1,538 × АбортыАнамнез (0)</span><br>
+      + <span id="t_obes">0,975 × Ожирение (0)</span><br>
+      + <span id="t_anemia">1,064 × ЖДА (0)</span><br>
+      + <span id="t_bact">1,064 × Бактериурия (0)</span>
+    </div>
+    <div class="formula-result" id="formulaResult">p = 1 / (1 + e^−z)</div>
+  </div>
+
+  <button class="reset-btn" onclick="resetAll()">↺ Сбросить все факторы</button>
+
+</div>
+
+<footer>
+  <p>Модель разработана на основе ретроспективного исследования (n = 180; основная группа n = 120, группа сравнения n = 60). AUC = 0,776 (95% CI: 0,708–0,845). Оптимальный порог по индексу Юдена: p = 0,615 (Se = 72,5%, Sp = 73,3%). Внутренняя валидация методом Bootstrap (1000 итераций).</p>
+  <p>* Бактериурия включена на основании клинической значимости и результатов однофакторного анализа (p = 0,031); в многофакторной модели p = 0,062.</p>
+  <p>Инструмент предназначен для поддержки клинического решения и не заменяет врачебное суждение.</p>
+</footer>
+
+<script>
+  const CONST = -1.068987;
+  const factors = {
+    phys:  { coef: 1.1681,    termId: 't_phys',   label: 'ФизТруд' },
+    prev:  { coef: 1.316039,  termId: 't_prev',   label: 'ПрРодыАнамнез' },
+    gyn:   { coef: 1.537581,  termId: 't_gyn',    label: 'АбортыАнамнез' },
+    obes:  { coef: 0.9750392, termId: 't_obes',   label: 'Ожирение' },
+    anemia:{ coef: 1.06398,   termId: 't_anemia', label: 'ЖДА' },
+    bact:  { coef: 1.063976,  termId: 't_bact',   label: 'Бактериурия' },
+  };
+
+  const state = {};
+  Object.keys(factors).forEach(k => state[k] = 0);
+
+  function toggle(el) {
+    const key = el.dataset.key;
+    state[key] = state[key] ? 0 : 1;
+    el.classList.toggle('active', state[key] === 1);
+    calculate();
+  }
+
+  function calculate() {
+    let z = CONST;
+    let anyActive = false;
+
+    Object.entries(factors).forEach(([key, f]) => {
+      const val = state[key];
+      if (val) anyActive = true;
+      z += f.coef * val;
+      const span = document.getElementById(f.termId);
+      span.textContent = `${f.coef.toFixed(3)} × ${f.label} (${val})`;
+      span.className = val ? 'active-term' : '';
+    });
+
+    const card    = document.getElementById('resultCard');
+    const pctEl   = document.getElementById('resultPct');
+    const labelEl = document.getElementById('riskLabel');
+    const subEl   = document.getElementById('riskSub');
+    const recEl   = document.getElementById('recommendation');
+    const fill    = document.getElementById('progressFill');
+    const fRes    = document.getElementById('formulaResult');
+
+    if (!anyActive) {
+      pctEl.textContent   = '—';
+      labelEl.textContent = 'Ожидание данных';
+      subEl.textContent   = 'Выберите факторы риска выше';
+      recEl.textContent   = 'Заполните форму для получения результата.';
+      card.className      = 'result-card';
+      fill.style.width    = '0%';
+      fRes.textContent    = 'p = 1 / (1 + e^−z)';
+      return;
+    }
+
+    const p   = 1 / (1 + Math.exp(-z));
+    const pct = Math.round(p * 100);
+    pctEl.textContent  = pct + '%';
+    fill.style.width   = pct + '%';
+    fRes.textContent   = `z = ${z.toFixed(3)}  →  p = ${(p*100).toFixed(1)}%`;
+
+    if (p < 0.40) {
+      card.className      = 'result-card low';
+      labelEl.textContent = 'Низкий риск';
+      subEl.textContent   = `Вероятность преждевременных родов: ${(p*100).toFixed(1)}%`;
+      recEl.textContent   = 'Рекомендовано стандартное антенатальное наблюдение согласно протоколу. Повторная оценка при изменении клинической картины.';
+    } else if (p < 0.615) {
+      card.className      = 'result-card mid';
+      labelEl.textContent = 'Умеренный риск';
+      subEl.textContent   = `Вероятность преждевременных родов: ${(p*100).toFixed(1)}%`;
+      recEl.textContent   = 'Рекомендовано усиленное наблюдение. Целесообразна коррекция модифицируемых факторов и учащение плановых визитов.';
+    } else {
+      card.className      = 'result-card high';
+      labelEl.textContent = 'Высокий риск';
+      subEl.textContent   = `Вероятность преждевременных родов: ${(p*100).toFixed(1)}%`;
+      recEl.textContent   = 'Рекомендовано индивидуальное ведение беременности с повышенной кратностью наблюдения и своевременной коррекцией выявленных нарушений.';
+    }
+  }
+
+  function resetAll() {
+    Object.keys(state).forEach(k => state[k] = 0);
+    document.querySelectorAll('.factor-item').forEach(el => el.classList.remove('active'));
+    calculate();
+  }
+</script>
+</body>
+</html>
