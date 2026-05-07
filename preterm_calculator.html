@@ -43,9 +43,10 @@
   /* HEADER */
   .header {
     background: linear-gradient(135deg, #1565c0 0%, #1976d2 60%, #0288d1 100%);
-    padding: 24px 20px 0;
+    padding: 28px 20px 0;
     position: relative;
     overflow: hidden;
+    text-align: center;
   }
 
   .header::after {
@@ -75,6 +76,8 @@
     border-radius: 20px;
     padding: 5px 12px;
     margin-bottom: 14px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .institute-badge .dot {
@@ -108,13 +111,15 @@
   }
 
   /* HINT */
-  .hint-bar {
-    background: #fff;
-    border-bottom: 2px solid var(--border);
-    padding: 11px 20px;
+  .hint-inline {
     display: flex;
     align-items: center;
     gap: 10px;
+    background: var(--accent-light);
+    border: 1.5px solid rgba(21,101,192,0.25);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
   }
 
   .hint-icon {
@@ -129,10 +134,11 @@
     font-weight: 700;
   }
 
-  .hint-bar p {
+  .hint-inline p {
     font-size: 12px;
-    color: var(--text-muted);
+    color: var(--accent);
     line-height: 1.4;
+    font-weight: 500;
   }
 
   /* MAIN */
@@ -455,14 +461,14 @@
   <h1>Калькулятор риска преждевременных родов</h1>
 </div>
 
-<div class="hint-bar">
-  <div class="hint-icon">i</div>
-  <p>Отметьте факторы риска, присутствующие у пациентки — вероятность рассчитается автоматически</p>
-</div>
-
 <div class="main">
 
   <div class="section-label">Факторы риска</div>
+
+  <div class="hint-inline">
+    <div class="hint-icon">i</div>
+    <p>Отметьте факторы риска, присутствующие у пациентки — вероятность рассчитается автоматически</p>
+  </div>
 
   <div class="factors-grid">
 
@@ -571,8 +577,7 @@
 
 <footer>
   <p>Модель разработана на основе ретроспективного исследования (n = 180; основная группа n = 120, группа сравнения n = 60). AUC = 0,776 (95% CI: 0,708–0,845). Оптимальный порог по индексу Юдена: p = 0,615 (Se = 72,5%, Sp = 73,3%). Внутренняя валидация методом Bootstrap (1000 итераций).</p>
-  <p>* Бактериурия включена на основании клинической значимости и результатов однофакторного анализа (p = 0,031); в многофакторной модели p = 0,062.</p>
-  <p>Инструмент предназначен для поддержки клинического решения и не заменяет врачебное суждение.</p>
+  <p>Данный инструмент предназначен исключительно для врачей и создан для выявления групп риска преждевременных родов. Полученный результат не означает, что преждевременные роды обязательно произойдут — он отражает вероятность на основе статистической модели и служит ориентиром для принятия клинического решения. Окончательная тактика ведения определяется врачом с учётом всей клинической картины.</p>
 </footer>
 
 <script>
